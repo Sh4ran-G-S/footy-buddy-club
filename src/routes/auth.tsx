@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const searchSchema = z.object({ next: z.string().optional() });
 
@@ -22,36 +21,35 @@ function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
-  const [step, setStep] = useState<"email" | "otp">("email");
+  const [sent, setSent] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: search.next ?? "/dashboard", replace: true });
   }, [user, loading, navigate, search.next]);
 
-  const requestOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendLink = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!email.trim() || !name.trim()) return toast.error("Add your name and email");
     setBusy(true);
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth${search.next ? `?next=${encodeURIComponent(search.next)}` : ""}`
+        : undefined;
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { data: { name: name.trim() }, shouldCreateUser: true },
+      options: {
+        data: { name: name.trim() },
+        shouldCreateUser: true,
+        emailRedirectTo: redirectTo,
+      },
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Check your email for a 6-digit code");
-    setStep("otp");
-  };
-
-  const verifyOtp = async (token: string) => {
-    setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Signed in");
+    toast.success("Magic link sent — check your email");
+    setSent(true);
   };
 
   return (
@@ -66,8 +64,8 @@ function AuthPage() {
         </div>
 
         <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur p-5 shadow-xl">
-          {step === "email" ? (
-            <form onSubmit={requestOtp} className="space-y-4">
+          {!sent ? (
+            <form onSubmit={sendLink} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Your name</Label>
                 <Input id="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Sankalp" />
@@ -77,40 +75,30 @@ function AuthPage() {
                 <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
               </div>
               <Button type="submit" className="w-full" disabled={busy}>
-                {busy ? "Sending…" : "Send 6-digit code"}
+                {busy ? "Sending…" : "Send magic link"}
               </Button>
               <p className="text-[11px] text-muted-foreground text-center">
-                We use email codes today. Phone OTP can be swapped in once an SMS provider is configured.
+                We'll email you a one-tap sign-in link. Open it on this device to come back signed in.
               </p>
             </form>
           ) : (
             <div className="space-y-5">
               <div className="text-center">
-                <p className="text-sm">Enter the code sent to</p>
+                <div className="size-12 rounded-full bg-primary/15 grid place-items-center mx-auto mb-3 ring-1 ring-primary/40">
+                  <span className="text-2xl">📬</span>
+                </div>
+                <p className="text-sm">We sent a sign-in link to</p>
                 <p className="text-sm font-medium">{email}</p>
-              </div>
-              <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  value={code}
-                  onChange={(v) => {
-                    setCode(v);
-                    if (v.length === 6) void verifyOtp(v);
-                  }}
-                >
-                  <InputOTPGroup>
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Open the email on this device and tap the link. You'll be signed in automatically.
+                </p>
               </div>
               <div className="flex justify-between text-xs">
-                <button className="text-muted-foreground hover:text-foreground" onClick={() => setStep("email")} disabled={busy}>
+                <button className="text-muted-foreground hover:text-foreground" onClick={() => setSent(false)} disabled={busy}>
                   Change email
                 </button>
-                <button className="text-primary hover:underline" onClick={requestOtp as unknown as () => void} disabled={busy}>
-                  Resend code
+                <button className="text-primary hover:underline" onClick={() => void sendLink()} disabled={busy}>
+                  Resend link
                 </button>
               </div>
             </div>
