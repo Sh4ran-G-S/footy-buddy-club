@@ -85,10 +85,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Footy Ledger" },
-      { property: "og:title", content: "Footy Ledger" },
-      { property: "og:description", content: "Run weekly football sessions and keep dues honest." },
+      { property: "og:title", content: "Footy Ledger — Track sessions, dues & dependable players" },
+      { property: "og:description", content: "Organize football sessions, split ground costs, and track who's paid — purpose-built for friends who play weekly." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Footy Ledger — Track sessions, dues & dependable players" },
+      { name: "twitter:description", content: "Organize football sessions, split ground costs, and track who's paid — purpose-built for friends who play weekly." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1bc45d7c-9e36-4e0c-813d-1b5241c250c4/id-preview-c89b9731--3d1d9409-d60b-45fc-8eac-12f783a7477f.lovable.app-1781794243036.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1bc45d7c-9e36-4e0c-813d-1b5241c250c4/id-preview-c89b9731--3d1d9409-d60b-45fc-8eac-12f783a7477f.lovable.app-1781794243036.png" },
     ],
     links: [
       {
