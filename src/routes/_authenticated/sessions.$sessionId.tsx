@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { buildUpiLink, formatINR } from "@/lib/footy";
 import { Trophy, Share2, CheckCircle2, Clock, AlertTriangle, Users } from "lucide-react";
+import { QrInvite } from "@/components/qr-invite";
 
 export const Route = createFileRoute("/_authenticated/sessions/$sessionId")({
   ssr: false,
@@ -107,6 +108,7 @@ function SessionDetail() {
 
   const s = sess.data;
   const base = s.expected_players > 0 ? Math.round(Number(s.ground_cost) / s.expected_players) : 0;
+  const inviteUrl = typeof window !== "undefined" ? `${window.location.origin}/join/${sessionId}` : null;
 
   const teamOf = (uid: string) =>
     (teams.data ?? []).find((t) => (t.team_members ?? []).some((m: { user_id: string }) => m.user_id === uid))?.id ?? "";
@@ -122,6 +124,8 @@ function SessionDetail() {
             <Stat label="Base" value={formatINR(base)} />
           </div>
         </div>
+
+        <QrInvite url={inviteUrl} />
 
         {/* Teams + results */}
         <section>
