@@ -53,6 +53,16 @@ function SessionDetail() {
       return data ?? [];
     },
   });
+  const playerCount = useQuery({
+    queryKey: ["session", sessionId, "player-count"],
+    queryFn: async () => {
+      const { data } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: number | null }>)("count_session_players", { _session_id: sessionId });
+      return Number(data ?? 0);
+    },
+  });
   const settings = useQuery({
     queryKey: ["app_settings"],
     queryFn: async () => {
@@ -135,7 +145,7 @@ function SessionDetail() {
           <p className="text-xs text-muted-foreground">{format(new Date(s.date), "EEE, d MMM yyyy · p")}</p>
           <div className="mt-2 grid grid-cols-3 gap-2 text-center text-sm">
             <Stat label="Ground" value={formatINR(s.ground_cost)} />
-            <Stat label="Players" value={`${(att.data ?? []).length}/${s.expected_players}`} />
+            <Stat label="Players" value={`${playerCount.data ?? 0}/${s.expected_players}`} />
             <Stat label="Base" value={formatINR(base)} />
           </div>
         </div>

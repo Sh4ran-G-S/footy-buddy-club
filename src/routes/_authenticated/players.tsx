@@ -16,14 +16,37 @@ export const Route = createFileRoute("/_authenticated/players")({
 });
 
 function PlayersPage() {
-  const { isSuperAdmin } = useAuth();
+  const { isSuperAdmin, isOrganizer } = useAuth();
   const qc = useQueryClient();
   const { data } = useQuery({
-    queryKey: ["players"],
+    queryKey: ["players", isOrganizer],
     queryFn: async () => {
-      const { data: profs } = await supabase.from("profiles").select("*").order("reliability_score", { ascending: false });
+      let profs:
+        | Array<{
+            id: string;
+            name: string;
+            reliability_score: number;
+            total_sessions: number;
+            bonus_goals: number;
+            outstanding_balance?: number;
+          }>
+        | null = null;
+      if (isOrganizer) {
+        const { data } = await (supabase.rpc as unknown as (
+          fn: string,
+        ) => Promise<{ data: typeof profs }>)("get_profiles_admin");
+        profs = (data ?? []).slice().sort((a, b) => b.reliability_score - a.reliability_score);
+      } else {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, name, reliability_score, total_sessions, bonus_goals")
+          .order("reliability_score", { ascending: false });
+        profs = data;
+      }
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-      const { data: goalRows } = await supabase.from("attendance").select("user_id, goals");
+      const { data: goalRows } = await supabase
+        .from("session_player_goals" as never)
+        .select("user_id, goals") as unknown as { data: { user_id: string; goals: number }[] | null };
       const goalMap = new Map<string, number>();
       (goalRows ?? []).forEach((g) => {
         goalMap.set(g.user_id, (goalMap.get(g.user_id) ?? 0) + (g.goals ?? 0));
@@ -82,9 +105,11 @@ function PlayersPage() {
               </div>
               <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{p.total_sessions} sessions</span>
-                {Number(p.outstanding_balance) > 0
-                  ? <span className="text-warning">Owes {formatINR(p.outstanding_balance)}</span>
-                  : <span className="text-success">Cleared</span>}
+                {isOrganizer ? (
+                  Number(p.outstanding_balance ?? 0) > 0
+                    ? <span className="text-warning">Owes {formatINR(p.outstanding_balance ?? 0)}</span>
+                    : <span className="text-success">Cleared</span>
+                ) : null}
               </div>
               <div className="mt-2 flex items-center justify-between rounded-lg bg-secondary/40 px-2.5 py-1.5">
                 <div className="flex items-center gap-1.5 text-xs">

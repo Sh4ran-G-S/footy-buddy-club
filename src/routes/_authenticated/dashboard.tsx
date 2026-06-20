@@ -36,10 +36,13 @@ function Dashboard() {
 
   const totals = useQuery({
     queryKey: ["dash", "totals"],
+    enabled: isOrganizer,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("outstanding_balance, reliability_score");
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+      ) => Promise<{ data: { outstanding_balance: number; reliability_score: number }[] | null; error: Error | null }>)(
+        "get_profiles_admin",
+      );
       if (error) throw error;
       const outstanding = (data ?? []).reduce((s, r) => s + Number(r.outstanding_balance || 0), 0);
       const overdue = (data ?? []).filter((r) => Number(r.outstanding_balance) > 0 && r.reliability_score < 50).length;
@@ -52,7 +55,9 @@ function Dashboard() {
     queryFn: async () => {
       const [{ data: profs, error }, { data: goalRows }] = await Promise.all([
         supabase.from("profiles").select("id, name, reliability_score, bonus_goals"),
-        supabase.from("attendance").select("user_id, goals"),
+        supabase
+          .from("session_player_goals" as never)
+          .select("user_id, goals") as unknown as Promise<{ data: { user_id: string; goals: number }[] | null }>,
       ]);
       if (error) throw error;
       const goalMap = new Map<string, number>();
@@ -94,6 +99,7 @@ function Dashboard() {
           </div>
         </AnimatedCard>
 
+        {isOrganizer && (
         <div className="grid grid-cols-2 gap-3">
           <AnimatedCard delay={0.2}>
             <Stat label="Outstanding" value={formatINR(totals.data?.outstanding ?? 0)} icon={<TrendingDown className="size-4 text-warning" />} />
@@ -102,6 +108,7 @@ function Dashboard() {
             <Stat label="Overdue players" value={(totals.data?.overdue ?? 0).toString()} icon={<AlertTriangle className="size-4 text-danger" />} />
           </AnimatedCard>
         </div>
+        )}
 
         <AnimatedCard delay={0.4}>
           <div className="flex items-baseline justify-between mb-2">
