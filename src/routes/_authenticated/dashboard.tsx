@@ -36,10 +36,13 @@ function Dashboard() {
 
   const totals = useQuery({
     queryKey: ["dash", "totals"],
+    enabled: isOrganizer,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("outstanding_balance, reliability_score");
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+      ) => Promise<{ data: { outstanding_balance: number; reliability_score: number }[] | null; error: Error | null }>)(
+        "get_profiles_admin",
+      );
       if (error) throw error;
       const outstanding = (data ?? []).reduce((s, r) => s + Number(r.outstanding_balance || 0), 0);
       const overdue = (data ?? []).filter((r) => Number(r.outstanding_balance) > 0 && r.reliability_score < 50).length;
