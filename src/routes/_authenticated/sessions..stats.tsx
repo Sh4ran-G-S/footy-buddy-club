@@ -31,11 +31,14 @@ function SessionStats() {
   const att = useQuery({
     queryKey: ["session", sessionId, "attendance-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("attendance")
-        .select("id, user_id, goals, profiles:user_id(name)")
+      const { data, error } = (await supabase
+        .from("session_player_goals" as never)
+        .select("id, user_id, goals, name")
         .eq("session_id", sessionId)
-        .order("goals", { ascending: false });
+        .order("goals", { ascending: false })) as unknown as {
+        data: { id: string; user_id: string; goals: number; name: string | null }[] | null;
+        error: Error | null;
+      };
       if (error) throw error;
       return data ?? [];
     },
@@ -92,7 +95,7 @@ function SessionStats() {
             <div className="p-4 text-sm text-muted-foreground">No players in this session yet.</div>
           )}
           {(att.data ?? []).map((a) => {
-            const name = (a as unknown as { profiles: { name: string } | null }).profiles?.name || "Player";
+            const name = a.name || "Player";
             return (
               <div key={a.id} className="p-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
