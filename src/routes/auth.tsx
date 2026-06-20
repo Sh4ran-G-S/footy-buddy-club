@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -55,15 +56,28 @@ function AuthPage() {
   return (
     <div className="min-h-screen grid place-items-center px-5">
       <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <div className="size-14 rounded-2xl bg-primary/15 grid place-items-center ring-1 ring-primary/40 mb-3">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center mb-8"
+        >
+          <motion.div 
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 4 }}
+            className="size-14 rounded-2xl bg-primary/15 grid place-items-center ring-1 ring-primary/40 mb-3"
+          >
             <span className="text-3xl">⚽</span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Footy Ledger</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sessions, dues, and dependable players.</p>
-        </div>
+          </motion.div>
+          <h1 className="text-2xl font-semibold tracking-tight text-glow">Footy Ledger</h1>
+          <p className="text-sm text-muted-foreground mt-1 italic">Sessions, dues, and dependable players.</p>
+        </motion.div>
 
-        <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur p-5 shadow-xl">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur p-5 shadow-xl glow-primary"
+        >
           {!sent ? (
             <form onSubmit={sendLink} className="space-y-4">
               <div className="space-y-2">
@@ -103,7 +117,7 @@ function AuthPage() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

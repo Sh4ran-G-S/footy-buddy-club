@@ -134,3 +134,19 @@
     background-size: 100% 100%, 100% 100%;
   }
 }
+
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 20px oklch(0.78 0.21 145 / 0.3);
+  }
+  .text-glow {
+    text-shadow: 0 0 10px oklch(0.78 0.21 145 / 0.5);
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+}

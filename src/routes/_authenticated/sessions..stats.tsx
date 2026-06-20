@@ -6,6 +6,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus, Minus, ArrowLeft, Goal } from "lucide-react";
+import { GoalCelebration } from "@/components/football-animations";
+import confetti from "canvas-confetti";
+import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/_authenticated/sessions/stats")({
   ssr: false,
@@ -15,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/sessions/stats")({
 
 function SessionStats() {
   const { sessionId } = Route.useParams();
+  const [showGoal, setShowGoal] = useState(false);
   const { isSuperAdmin } = useAuth();
   const qc = useQueryClient();
 
@@ -38,6 +43,18 @@ function SessionStats() {
 
   const bump = async (id: string, current: number, delta: number) => {
     const next = Math.max(0, current + delta);
+    
+    if (delta > 0) {
+      setShowGoal(true);
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#22c55e", "#ffffff", "#000000"]
+      });
+      setTimeout(() => setShowGoal(false), 2000);
+    }
+
     const { error } = await supabase.from("attendance").update({ goals: next }).eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["session", sessionId, "attendance-stats"] });
@@ -54,6 +71,9 @@ function SessionStats() {
       }
     >
       <div className="space-y-3">
+        <AnimatePresence>
+          {showGoal && <GoalCelebration show={showGoal} />}
+        </AnimatePresence>
         {sess.data && (
           <div className="rounded-xl border border-border/60 bg-card/40 p-3">
             <p className="text-sm font-medium">{sess.data.title}</p>

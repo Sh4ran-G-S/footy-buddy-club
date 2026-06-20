@@ -6,6 +6,8 @@ import { ReliabilityBadge } from "@/components/reliability-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { formatINR } from "@/lib/footy";
 import { Plus, TrendingDown, Trophy, AlertTriangle, CalendarDays } from "lucide-react";
+import { AnimatedCard } from "@/components/football-animations";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -74,25 +76,34 @@ function Dashboard() {
       }
     >
       <section className="space-y-4">
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Hello</p>
-          <div className="flex items-center justify-between mt-1">
-            <h2 className="text-lg font-semibold">{profile?.name || "Player"}</h2>
-            <ReliabilityBadge score={profile?.reliability_score ?? 100} />
+        <AnimatedCard delay={0.1}>
+          <div className="rounded-2xl border border-border/60 bg-card/60 p-4 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Trophy className="size-24 rotate-12" />
+            </div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Hello</p>
+            <div className="flex items-center justify-between mt-1">
+              <h2 className="text-lg font-semibold">{profile?.name || "Player"}</h2>
+              <ReliabilityBadge score={profile?.reliability_score ?? 100} />
+            </div>
+            {Number(profile?.outstanding_balance ?? 0) > 0 && (
+              <p className="mt-3 text-sm flex items-center gap-1.5 text-warning">
+                <AlertTriangle className="size-4" /> You owe {formatINR(profile?.outstanding_balance)}
+              </p>
+            )}
           </div>
-          {Number(profile?.outstanding_balance ?? 0) > 0 && (
-            <p className="mt-3 text-sm flex items-center gap-1.5 text-warning">
-              <AlertTriangle className="size-4" /> You owe {formatINR(profile?.outstanding_balance)}
-            </p>
-          )}
-        </div>
+        </AnimatedCard>
 
         <div className="grid grid-cols-2 gap-3">
-          <Stat label="Outstanding" value={formatINR(totals.data?.outstanding ?? 0)} icon={<TrendingDown className="size-4 text-warning" />} />
-          <Stat label="Overdue players" value={(totals.data?.overdue ?? 0).toString()} icon={<AlertTriangle className="size-4 text-danger" />} />
+          <AnimatedCard delay={0.2}>
+            <Stat label="Outstanding" value={formatINR(totals.data?.outstanding ?? 0)} icon={<TrendingDown className="size-4 text-warning" />} />
+          </AnimatedCard>
+          <AnimatedCard delay={0.3}>
+            <Stat label="Overdue players" value={(totals.data?.overdue ?? 0).toString()} icon={<AlertTriangle className="size-4 text-danger" />} />
+          </AnimatedCard>
         </div>
 
-        <div>
+        <AnimatedCard delay={0.4}>
           <div className="flex items-baseline justify-between mb-2">
             <h3 className="text-sm font-semibold flex items-center gap-1.5"><CalendarDays className="size-4" /> Upcoming</h3>
             <Link to="/sessions" className="text-xs text-muted-foreground hover:text-foreground">See all</Link>
@@ -103,30 +114,40 @@ function Dashboard() {
                 No upcoming sessions yet.
               </div>
             )}
-            {(upcoming.data ?? []).map((s) => (
-              <Link
+            {(upcoming.data ?? []).map((s, i) => (
+              <motion.div
                 key={s.id}
-                to="/sessions/$sessionId"
-                params={{ sessionId: s.id }}
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3 hover:bg-card/70 transition-colors"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
               >
-                <div>
-                  <p className="font-medium leading-tight">{s.title}</p>
-                  <p className="text-xs text-muted-foreground">{format(new Date(s.date), "EEE, d MMM · p")}</p>
-                </div>
-                <span className="text-xs rounded-full bg-primary/15 text-primary px-2 py-0.5 ring-1 ring-primary/30 capitalize">
-                  {s.status}
-                </span>
-              </Link>
+                <Link
+                  to="/sessions/$sessionId"
+                  params={{ sessionId: s.id }}
+                  className="flex items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3 hover:bg-card/70 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <div>
+                    <p className="font-medium leading-tight">{s.title}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(s.date), "EEE, d MMM · p")}</p>
+                  </div>
+                  <span className="text-xs rounded-full bg-primary/15 text-primary px-2 py-0.5 ring-1 ring-primary/30 capitalize">
+                    {s.status}
+                  </span>
+                </Link>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </AnimatedCard>
 
-        <div>
+        <AnimatedCard delay={0.7}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5 mb-2"><Trophy className="size-4" /> Leaderboard</h3>
-          <div className="rounded-xl border border-border/60 bg-card/40 divide-y divide-border/60">
+          <div className="rounded-xl border border-border/60 bg-card/40 divide-y divide-border/60 overflow-hidden">
             {(leaderboard.data ?? []).map((p, i) => (
-              <div key={p.id} className="flex items-center justify-between p-3">
+              <motion.div 
+                key={p.id} 
+                whileHover={{ backgroundColor: "rgba(var(--primary-rgb), 0.05)" }}
+                className="flex items-center justify-between p-3"
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-muted-foreground w-4 text-sm">{i + 1}</span>
                   <span className="font-medium">{p.name || "Player"}</span>
@@ -137,10 +158,10 @@ function Dashboard() {
                   </span>
                   <ReliabilityBadge score={p.reliability_score} showScore={false} />
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </AnimatedCard>
       </section>
     </AppShell>
   );

@@ -1,5 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, CalendarDays, Wallet, Users, Settings } from "lucide-react";
+import { FloatingFootball } from "./football-animations";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -14,13 +16,18 @@ const NAV = [
 export function AppShell({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col selection:bg-primary selection:text-primary-foreground">
+      <FloatingFootball />
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-background/75 border-b border-border/60">
         <div className="mx-auto max-w-screen-sm px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="size-7 rounded-md bg-primary/20 grid place-items-center ring-1 ring-primary/40">
+            <motion.div 
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+              className="size-7 rounded-md bg-primary/20 grid place-items-center ring-1 ring-primary/40"
+            >
               <span className="text-primary text-sm">⚽</span>
-            </div>
+            </motion.div>
             <h1 className="font-semibold tracking-tight">{title}</h1>
           </div>
           {action}
