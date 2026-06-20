@@ -263,9 +263,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      session_player_goals: {
+        Row: {
+          goals: number | null
+          id: string | null
+          name: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      count_session_players: { Args: { _session_id: string }; Returns: number }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          bonus_goals: number
+          created_at: string
+          id: string
+          name: string
+          outstanding_balance: number
+          phone: string | null
+          reliability_score: number
+          total_sessions: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_profiles_admin: {
+        Args: never
+        Returns: {
+          bonus_goals: number
+          created_at: string
+          id: string
+          name: string
+          outstanding_balance: number
+          phone: string | null
+          reliability_score: number
+          total_sessions: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
