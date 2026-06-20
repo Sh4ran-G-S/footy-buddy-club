@@ -97,6 +97,7 @@ function Dashboard() {
           </div>
         </AnimatedCard>
 
+        {isOrganizer && (
         <div className="grid grid-cols-2 gap-3">
           <AnimatedCard delay={0.2}>
             <Stat label="Outstanding" value={formatINR(totals.data?.outstanding ?? 0)} icon={<TrendingDown className="size-4 text-warning" />} />
@@ -105,6 +106,7 @@ function Dashboard() {
             <Stat label="Overdue players" value={(totals.data?.overdue ?? 0).toString()} icon={<AlertTriangle className="size-4 text-danger" />} />
           </AnimatedCard>
         </div>
+        )}
 
         <AnimatedCard delay={0.4}>
           <div className="flex items-baseline justify-between mb-2">
