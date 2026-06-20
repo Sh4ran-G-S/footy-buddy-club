@@ -55,7 +55,9 @@ function Dashboard() {
     queryFn: async () => {
       const [{ data: profs, error }, { data: goalRows }] = await Promise.all([
         supabase.from("profiles").select("id, name, reliability_score, bonus_goals"),
-        supabase.from("attendance").select("user_id, goals"),
+        supabase
+          .from("session_player_goals" as never)
+          .select("user_id, goals") as unknown as Promise<{ data: { user_id: string; goals: number }[] | null }>,
       ]);
       if (error) throw error;
       const goalMap = new Map<string, number>();
