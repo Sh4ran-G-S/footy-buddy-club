@@ -7,7 +7,7 @@ import { useAuth, type AppRole } from "@/hooks/use-auth";
 import { formatINR } from "@/lib/footy";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShieldCheck, Shield } from "lucide-react";
+import { ShieldCheck, Shield, Plus, Minus, Goal } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/players")({
   ssr: false,
@@ -23,13 +23,23 @@ function PlayersPage() {
     queryFn: async () => {
       const { data: profs } = await supabase.from("profiles").select("*").order("reliability_score", { ascending: false });
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      const { data: goalRows } = await supabase.from("attendance").select("user_id, goals");
+      const goalMap = new Map<string, number>();
+      (goalRows ?? []).forEach((g) => {
+        goalMap.set(g.user_id, (goalMap.get(g.user_id) ?? 0) + (g.goals ?? 0));
+      });
       const roleMap = new Map<string, AppRole[]>();
       (roles ?? []).forEach((r) => {
         const arr = roleMap.get(r.user_id) ?? [];
         arr.push(r.role as AppRole);
         roleMap.set(r.user_id, arr);
       });
-      return (profs ?? []).map((p) => ({ ...p, roles: roleMap.get(p.id) ?? [] }));
+      return (profs ?? []).map((p) => ({
+        ...p,
+        roles: roleMap.get(p.id) ?? [],
+        session_goals: goalMap.get(p.id) ?? 0,
+        total_goals: (goalMap.get(p.id) ?? 0) + (p.bonus_goals ?? 0),
+      }));
     },
   });
 
@@ -44,6 +54,14 @@ function PlayersPage() {
       toast.success("Removed organizer role");
     }
     qc.invalidateQueries({ queryKey: ["players"] });
+  };
+
+  const bumpBonus = async (userId: string, current: number, delta: number) => {
+    const next = Math.max(0, current + delta);
+    const { error } = await supabase.from("profiles").update({ bonus_goals: next }).eq("id", userId);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["players"] });
+    qc.invalidateQueries({ queryKey: ["leaderboard"] });
   };
 
   return (
@@ -67,6 +85,25 @@ function PlayersPage() {
                 {Number(p.outstanding_balance) > 0
                   ? <span className="text-warning">Owes {formatINR(p.outstanding_balance)}</span>
                   : <span className="text-success">Cleared</span>}
+              </div>
+              <div className="mt-2 flex items-center justify-between rounded-lg bg-secondary/40 px-2.5 py-1.5">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Goal className="size-3.5 text-primary" />
+                  <span className="font-medium">{p.total_goals} goals</span>
+                  <span className="text-muted-foreground">
+                    ({p.session_goals} tracked{p.bonus_goals ? ` + ${p.bonus_goals} legacy` : ""})
+                  </span>
+                </div>
+                {isSuperAdmin && (
+                  <div className="flex items-center gap-1">
+                    <Button size="icon" variant="ghost" className="size-6" onClick={() => bumpBonus(p.id, p.bonus_goals ?? 0, -1)}>
+                      <Minus className="size-3" />
+                    </Button>
+                    <Button size="icon" variant="secondary" className="size-6" onClick={() => bumpBonus(p.id, p.bonus_goals ?? 0, 1)}>
+                      <Plus className="size-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
               {isSuperAdmin && !isSA && (
                 <div className="mt-2">

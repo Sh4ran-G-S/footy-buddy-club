@@ -39,6 +39,7 @@ export type Database = {
         Row: {
           amount_due: number
           created_at: string
+          goals: number
           id: string
           invited_by_user_id: string | null
           paid_at: string | null
@@ -49,6 +50,7 @@ export type Database = {
         Insert: {
           amount_due?: number
           created_at?: string
+          goals?: number
           id?: string
           invited_by_user_id?: string | null
           paid_at?: string | null
@@ -59,6 +61,7 @@ export type Database = {
         Update: {
           amount_due?: number
           created_at?: string
+          goals?: number
           id?: string
           invited_by_user_id?: string | null
           paid_at?: string | null
@@ -92,6 +95,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bonus_goals: number
           created_at: string
           id: string
           name: string
@@ -101,6 +105,7 @@ export type Database = {
           total_sessions: number
         }
         Insert: {
+          bonus_goals?: number
           created_at?: string
           id: string
           name?: string
@@ -110,6 +115,7 @@ export type Database = {
           total_sessions?: number
         }
         Update: {
+          bonus_goals?: number
           created_at?: string
           id?: string
           name?: string

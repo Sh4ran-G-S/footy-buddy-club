@@ -46,16 +46,19 @@ function Dashboard() {
   });
 
   const leaderboard = useQuery({
-    queryKey: ["dash", "leaderboard"],
+    queryKey: ["leaderboard"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, name, reliability_score, total_sessions")
-        .order("reliability_score", { ascending: false })
-        .order("total_sessions", { ascending: false })
-        .limit(5);
+      const [{ data: profs, error }, { data: goalRows }] = await Promise.all([
+        supabase.from("profiles").select("id, name, reliability_score, bonus_goals"),
+        supabase.from("attendance").select("user_id, goals"),
+      ]);
       if (error) throw error;
-      return data ?? [];
+      const goalMap = new Map<string, number>();
+      (goalRows ?? []).forEach((g) => goalMap.set(g.user_id, (goalMap.get(g.user_id) ?? 0) + (g.goals ?? 0)));
+      return (profs ?? [])
+        .map((p) => ({ ...p, goals: (goalMap.get(p.id) ?? 0) + (p.bonus_goals ?? 0) }))
+        .sort((a, b) => b.goals - a.goals || b.reliability_score - a.reliability_score)
+        .slice(0, 5);
     },
   });
 
@@ -128,7 +131,12 @@ function Dashboard() {
                   <span className="text-muted-foreground w-4 text-sm">{i + 1}</span>
                   <span className="font-medium">{p.name || "Player"}</span>
                 </div>
-                <ReliabilityBadge score={p.reliability_score} />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs tabular-nums rounded-full bg-primary/15 text-primary ring-1 ring-primary/30 px-2 py-0.5">
+                    {p.goals} goals
+                  </span>
+                  <ReliabilityBadge score={p.reliability_score} showScore={false} />
+                </div>
               </div>
             ))}
           </div>

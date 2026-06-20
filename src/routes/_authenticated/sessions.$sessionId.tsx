@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { buildUpiLink, formatINR } from "@/lib/footy";
-import { Trophy, Share2, CheckCircle2, Clock, AlertTriangle, Users } from "lucide-react";
+import { Trophy, Share2, CheckCircle2, Clock, AlertTriangle, Users, BarChart3, Flag } from "lucide-react";
 import { QrInvite } from "@/components/qr-invite";
+import { SessionTimer } from "@/components/session-timer";
 
 export const Route = createFileRoute("/_authenticated/sessions/$sessionId")({
   ssr: false,
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/sessions/$sessionId")({
 
 function SessionDetail() {
   const { sessionId } = Route.useParams();
-  const { isOrganizer } = useAuth();
+  const { isOrganizer, isSuperAdmin } = useAuth();
   const qc = useQueryClient();
 
   const sess = useQuery({
@@ -68,7 +69,21 @@ function SessionDetail() {
   const setPlacement = async (teamId: string, place: number | null) => {
     const { error } = await supabase.from("teams").update({ placement: place }).eq("id", teamId);
     if (error) return toast.error(error.message);
-    await supabase.from("sessions").update({ results_set: true, status: "completed" }).eq("id", sessionId);
+    await supabase.from("sessions").update({ results_set: true }).eq("id", sessionId);
+    refetchAll();
+  };
+
+  const endSession = async () => {
+    if (!confirm("End this session? Players will see it as completed.")) return;
+    const { error } = await supabase.from("sessions").update({ status: "completed" }).eq("id", sessionId);
+    if (error) return toast.error(error.message);
+    toast.success("Session ended");
+    refetchAll();
+  };
+  const reopenSession = async () => {
+    const { error } = await supabase.from("sessions").update({ status: "active" }).eq("id", sessionId);
+    if (error) return toast.error(error.message);
+    toast.success("Session reopened");
     refetchAll();
   };
 
@@ -126,6 +141,25 @@ function SessionDetail() {
         </div>
 
         <QrInvite url={inviteUrl} />
+
+        <SessionTimer sessionId={sessionId} />
+
+        <div className="grid grid-cols-2 gap-2">
+          <Link to="/sessions/$sessionId/stats" params={{ sessionId }}>
+            <Button variant="secondary" className="w-full gap-1.5"><BarChart3 className="size-4" /> Goal stats</Button>
+          </Link>
+          {isSuperAdmin && (
+            s.status === "completed" ? (
+              <Button variant="ghost" className="w-full gap-1.5" onClick={reopenSession}>
+                <Flag className="size-4" /> Reopen session
+              </Button>
+            ) : (
+              <Button variant="default" className="w-full gap-1.5" onClick={endSession}>
+                <Flag className="size-4" /> End session
+              </Button>
+            )
+          )}
+        </div>
 
         {/* Teams + results */}
         <section>
