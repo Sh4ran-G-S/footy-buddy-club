@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus, Minus, ArrowLeft, Goal } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/sessions/$sessionId/stats")({
+export const Route = createFileRoute("/_authenticated/sessions/stats")({
   ssr: false,
   head: () => ({ meta: [{ title: "Stats — Footy Ledger" }] }),
   component: SessionStats,

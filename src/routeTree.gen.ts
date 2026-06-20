@@ -19,6 +19,7 @@ import { Route as AuthenticatedPlayersRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDebtsRouteImport } from './routes/_authenticated/debts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedSessionsIndexRouteImport } from './routes/_authenticated/sessions.index'
+import { Route as AuthenticatedSessionsStatsRouteImport } from './routes/_authenticated/sessions..stats'
 import { Route as AuthenticatedSessionsNewRouteImport } from './routes/_authenticated/sessions.new'
 import { Route as AuthenticatedSessionsSessionIdRouteImport } from './routes/_authenticated/sessions.$sessionId'
 
@@ -72,6 +73,12 @@ const AuthenticatedSessionsIndexRoute =
     path: '/sessions/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSessionsStatsRoute =
+  AuthenticatedSessionsStatsRouteImport.update({
+    id: '/sessions/stats',
+    path: '/sessions/stats',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSessionsNewRoute =
   AuthenticatedSessionsNewRouteImport.update({
     id: '/sessions/new',
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/join/$sessionId': typeof JoinSessionIdRoute
   '/sessions/$sessionId': typeof AuthenticatedSessionsSessionIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/sessions/stats': typeof AuthenticatedSessionsStatsRoute
   '/sessions/': typeof AuthenticatedSessionsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/join/$sessionId': typeof JoinSessionIdRoute
   '/sessions/$sessionId': typeof AuthenticatedSessionsSessionIdRoute
   '/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/sessions/stats': typeof AuthenticatedSessionsStatsRoute
   '/sessions': typeof AuthenticatedSessionsIndexRoute
 }
 export interface FileRoutesById {
@@ -124,6 +133,7 @@ export interface FileRoutesById {
   '/join/$sessionId': typeof JoinSessionIdRoute
   '/_authenticated/sessions/$sessionId': typeof AuthenticatedSessionsSessionIdRoute
   '/_authenticated/sessions/new': typeof AuthenticatedSessionsNewRoute
+  '/_authenticated/sessions/stats': typeof AuthenticatedSessionsStatsRoute
   '/_authenticated/sessions/': typeof AuthenticatedSessionsIndexRoute
 }
 export interface FileRouteTypes {
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/join/$sessionId'
     | '/sessions/$sessionId'
     | '/sessions/new'
+    | '/sessions/stats'
     | '/sessions/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/join/$sessionId'
     | '/sessions/$sessionId'
     | '/sessions/new'
+    | '/sessions/stats'
     | '/sessions'
   id:
     | '__root__'
@@ -166,6 +178,7 @@ export interface FileRouteTypes {
     | '/join/$sessionId'
     | '/_authenticated/sessions/$sessionId'
     | '/_authenticated/sessions/new'
+    | '/_authenticated/sessions/stats'
     | '/_authenticated/sessions/'
   fileRoutesById: FileRoutesById
 }
@@ -249,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSessionsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/sessions/stats': {
+      id: '/_authenticated/sessions/stats'
+      path: '/sessions/stats'
+      fullPath: '/sessions/stats'
+      preLoaderRoute: typeof AuthenticatedSessionsStatsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sessions/new': {
       id: '/_authenticated/sessions/new'
       path: '/sessions/new'
@@ -273,6 +293,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSessionsSessionIdRoute: typeof AuthenticatedSessionsSessionIdRoute
   AuthenticatedSessionsNewRoute: typeof AuthenticatedSessionsNewRoute
+  AuthenticatedSessionsStatsRoute: typeof AuthenticatedSessionsStatsRoute
   AuthenticatedSessionsIndexRoute: typeof AuthenticatedSessionsIndexRoute
 }
 
@@ -283,6 +304,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSessionsSessionIdRoute: AuthenticatedSessionsSessionIdRoute,
   AuthenticatedSessionsNewRoute: AuthenticatedSessionsNewRoute,
+  AuthenticatedSessionsStatsRoute: AuthenticatedSessionsStatsRoute,
   AuthenticatedSessionsIndexRoute: AuthenticatedSessionsIndexRoute,
 }
 
